@@ -48,13 +48,27 @@ func main() {
 		api.Get("/glossary", h.GetGlossary)
 		api.Get("/search", h.Search)
 
-		// Interactive tools
+		// Interactive Tools
 		api.Post("/barsop/generate", h.GenerateBarsop)
 		api.Get("/gap-analysis/questions", h.GetGapQuestions)
 		api.Post("/gap-analysis/evaluate", h.EvaluateGap)
 		api.Get("/audit/controls", h.GetAuditControls)
 		api.Post("/audit/evaluate", h.EvaluateAudit)
 		api.Post("/sanctions/calculate", h.CalculateSanctions)
+
+		// Institutional Dashboard & Governance
+		api.Get("/institution/status", h.GetInstitutionalStatus)
+		api.Get("/institution/rat", h.GetRatActivities)
+		api.Post("/institution/rat", h.AddRatActivity)
+		api.Get("/institution/dpa", h.GetDpaContracts)
+		api.Post("/institution/dpa", h.AddDpaContract)
+		api.Put("/institution/dpa/{id}/toggle", h.ToggleDpaContract)
+		api.Get("/institution/incidents", h.GetIncidents)
+		api.Post("/institution/incidents", h.AddIncident)
+
+		// Citizen Tracking & APDP Complaint
+		api.Get("/citizen/requests", h.GetCitizenRequests)
+		api.Post("/citizen/complaint-apdp", h.GenerateApdpComplaint)
 	})
 
 	log.Printf("🚀 Servidor PO Backend iniciado en http://localhost:%s", port)

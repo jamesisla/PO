@@ -54,6 +54,7 @@ export interface BarsopRequestInput {
 }
 
 export interface BarsopRequestResult {
+  trackingCode: string;
   rightType: string;
   applicantName: string;
   recipientCompany: string;
@@ -65,6 +66,81 @@ export interface BarsopRequestResult {
   documentText: string;
   legalBasisSummary: string;
   nextStepsGuidelines: string[];
+}
+
+export interface CitizenTrackedRequest {
+  id: string;
+  trackingCode: string;
+  rightType: string;
+  applicantName: string;
+  recipientCompany: string;
+  requestDateStr: string;
+  deadlineDateStr: string;
+  daysRemaining: number;
+  status: 'En Plazo' | 'Riesgo Vencimiento' | 'Vencida (Expirada)' | 'Respondida' | 'Reclamada APDP';
+  canFileComplaint: boolean;
+}
+
+export interface ApdpComplaintInput {
+  trackingCode: string;
+  applicantName: string;
+  applicantRut: string;
+  applicantEmail: string;
+  applicantPhone: string;
+  respondentCompany: string;
+  rightType: string;
+  originalDateStr: string;
+  complaintReason: string;
+  specificFacts: string;
+}
+
+export interface ApdpComplaintResult {
+  complaintCode: string;
+  applicantName: string;
+  respondentCompany: string;
+  filingDateStr: string;
+  documentText: string;
+  legalArticles: string[];
+  agencySubmissionTips: string[];
+}
+
+export interface DpaContract {
+  id: string;
+  vendorName: string;
+  serviceType: string;
+  dataCategories: string;
+  hasSignedDpa: boolean;
+  signatureDate: string;
+  riskLevel: 'Alto' | 'Medio' | 'Bajo';
+  securityCertifications: string;
+  notes: string;
+}
+
+export interface IncidentLog {
+  id: string;
+  incidentCode: string;
+  title: string;
+  discoveryDateStr: string;
+  threatType: string;
+  affectedDataTypes: string;
+  estimatedRecordsCount: number;
+  highRiskForTitulars: boolean;
+  hoursElapsed: number;
+  hoursRemaining72: number;
+  status: string;
+  mitigationSummary: string;
+  agencyNotificationDoc: string;
+}
+
+export interface RatActivity {
+  id: string;
+  name: string;
+  lawfulBasis: string;
+  ownerDept: string;
+  dataCategories: string[];
+  retentionPeriod: string;
+  securityMeasures: string;
+  hasSensitiveData: boolean;
 }
 
 export interface GapOption {
@@ -99,6 +175,30 @@ export interface GapResult {
   createdAt: string;
 }
 
+export interface InstitutionalStatus {
+  companyName: string;
+  lastUpdated: string;
+  overallInstitutionalScore: number;
+  maturityLevel: string;
+  auditorRecommendedOpinion: string;
+  ratTreatmentsCount: number;
+  ratLicitudPercent: number;
+  ratActivities: RatActivity[];
+  dpaVendorsTotal: number;
+  dpaSignedCount: number;
+  dpaCompliancePercent: number;
+  dpaContracts: DpaContract[];
+  barsopTotalRequests: number;
+  barsopResolvedCount: number;
+  barsopPendingCount: number;
+  barsopOverdueCount: number;
+  barsopAvgResponseDays: number;
+  incidentsTotal: number;
+  incidents72hCompliedPercent: number;
+  incidents: IncidentLog[];
+  keyAuditAlerts: string[];
+}
+
 export interface AuditControl {
   id: string;
   controlCode: string;
@@ -108,6 +208,8 @@ export interface AuditControl {
   legalArticle: string;
   requiredEvidence: string;
   riskLevel: 'Alto' | 'Medio' | 'Bajo';
+  liveEvidenceRef?: string;
+  autoEvaluated?: boolean;
 }
 
 export interface AuditControlEvaluation {

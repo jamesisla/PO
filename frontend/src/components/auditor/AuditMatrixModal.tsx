@@ -141,9 +141,17 @@ export const AuditMatrixModal: React.FC<AuditMatrixModalProps> = ({ isOpen, onCl
 
                       <p className="text-xs text-slate-400 leading-relaxed">{ctrl.description}</p>
 
-                      <div className="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 text-xs text-slate-300">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Evidencia Requerida:</span>
-                        <span>{ctrl.requiredEvidence}</span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div className="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 text-slate-300">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Evidencia Requerida:</span>
+                          <span>{ctrl.requiredEvidence}</span>
+                        </div>
+                        {ctrl.liveEvidenceRef && (
+                          <div className="bg-emerald-950/30 p-2.5 rounded-lg border border-emerald-500/30 text-emerald-300">
+                            <span className="text-[10px] font-bold text-emerald-400 uppercase block mb-1">Evidencia Detectada en la Empresa:</span>
+                            <span className="font-medium">{ctrl.liveEvidenceRef}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Status Selector */}

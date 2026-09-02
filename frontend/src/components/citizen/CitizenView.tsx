@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Module } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { Module, CitizenTrackedRequest } from '../../types';
 import { BarsopWizard } from './BarsopWizard';
-import { Shield, Lock, Trash2, Edit3, ArrowRightLeft, Eye, Clock, FileCheck, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
+import { ApdpComplaintModal } from './ApdpComplaintModal';
+import { api } from '../../services/api';
+import { Shield, Lock, Trash2, Edit3, ArrowRightLeft, Eye, Clock, FileCheck, CheckCircle2, ChevronRight, Sparkles, Scale, AlertTriangle, AlertOctagon } from 'lucide-react';
 
 interface CitizenViewProps {
   modules: Module[];
@@ -10,7 +12,14 @@ interface CitizenViewProps {
 
 export const CitizenView: React.FC<CitizenViewProps> = ({ modules, onSelectModule }) => {
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [complaintOpen, setComplaintOpen] = useState(false);
   const [selectedRight, setSelectedRight] = useState('Acceso');
+  const [trackedRequests, setTrackedRequests] = useState<CitizenTrackedRequest[]>([]);
+  const [complaintTarget, setComplaintTarget] = useState({ trackingCode: '', company: '', right: 'Acceso' });
+
+  useEffect(() => {
+    api.getCitizenRequests().then(setTrackedRequests).catch(console.error);
+  }, []);
 
   const barsopItems = [
     { code: 'B', right: 'Bloqueo', icon: <Lock className="w-5 h-5 text-amber-400" />, desc: 'Suspender temporalmente el uso de tus datos mientras se aclara un error o litigio.' },
@@ -24,6 +33,15 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ modules, onSelectModul
   const handleLaunchWizard = (right: string) => {
     setSelectedRight(right);
     setWizardOpen(true);
+  };
+
+  const handleLaunchComplaint = (req: CitizenTrackedRequest) => {
+    setComplaintTarget({
+      trackingCode: req.trackingCode,
+      company: req.recipientCompany,
+      right: req.rightType,
+    });
+    setComplaintOpen(true);
   };
 
   const level1 = modules.filter((m) => m.level === 1);
@@ -57,6 +75,76 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ modules, onSelectModul
               <span>Plazo perentorio de 30 días corridos</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* BARSOP Citizen Request Tracker */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+              <Clock className="w-4 h-4 text-sky-400" />
+              Buzón y Trazabilidad de Solicitudes BARSOP (SLA 30 Días)
+            </h3>
+            <p className="text-xs text-slate-400">Controla si las empresas responden dentro del plazo legal o si corresponde reclamar ante la APDP</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {trackedRequests.map((req) => (
+            <div
+              key={req.id}
+              className={`p-4 rounded-xl border flex flex-col justify-between space-y-3 transition-all ${
+                req.status === 'Vencida (Expirada)'
+                  ? 'bg-rose-950/30 border-rose-500/40'
+                  : req.status === 'Respondida'
+                  ? 'bg-emerald-950/20 border-emerald-500/30'
+                  : 'bg-slate-950/80 border-slate-800'
+              }`}
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold text-sky-400 px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+                    {req.trackingCode}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                    req.status === 'Vencida (Expirada)'
+                      ? 'bg-rose-500/20 text-rose-300'
+                      : req.status === 'Respondida'
+                      ? 'bg-emerald-500/20 text-emerald-300'
+                      : 'bg-sky-500/20 text-sky-300'
+                  }`}>
+                    {req.status}
+                  </span>
+                </div>
+                <h4 className="text-xs font-bold text-white">Derecho de {req.rightType}</h4>
+                <p className="text-xs text-slate-300 font-medium">{req.recipientCompany}</p>
+                <div className="text-[11px] text-slate-400 flex items-center justify-between pt-1">
+                  <span>Enviada: {req.requestDateStr}</span>
+                  <span>Límite: {req.deadlineDateStr}</span>
+                </div>
+              </div>
+
+              {req.canFileComplaint ? (
+                <button
+                  onClick={() => handleLaunchComplaint(req)}
+                  className="w-full py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-rose-600/20 transition-colors"
+                >
+                  <Scale className="w-3.5 h-3.5" />
+                  <span>Reclamar ante la APDP</span>
+                </button>
+              ) : req.status === 'Respondida' ? (
+                <div className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Resuelta por la empresa</span>
+                </div>
+              ) : (
+                <div className="text-[11px] text-sky-400 font-medium">
+                  {req.daysRemaining} días restantes para respuesta
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -165,11 +253,22 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ modules, onSelectModul
         </div>
       </div>
 
-      {/* BARSOP Wizard Modal */}
+      {/* Modals */}
       <BarsopWizard
         isOpen={wizardOpen}
-        onClose={() => setWizardOpen(false)}
+        onClose={() => {
+          setWizardOpen(false);
+          api.getCitizenRequests().then(setTrackedRequests).catch(console.error);
+        }}
         defaultRight={selectedRight}
+      />
+
+      <ApdpComplaintModal
+        isOpen={complaintOpen}
+        onClose={() => setComplaintOpen(false)}
+        defaultTrackingCode={complaintTarget.trackingCode}
+        defaultCompany={complaintTarget.company}
+        defaultRight={complaintTarget.right}
       />
     </div>
   );

@@ -595,13 +595,13 @@ func GetGlossaryTerms() []domain.GlossaryTerm {
 
 func GetAuditControls() []domain.AuditControl {
 	return []domain.AuditControl{
-		{ID: "ctrl-1", ControlCode: "CTRL-LIC-01", Category: "Licitud y Principios", Title: "Existencia de Base Legal de Licitud", Description: "Verificar que cada tratamiento cuente con base legal válida documentada.", LegalArticle: "Art. 4 y 13", RequiredEvidence: "Registro de consentimientos, contratos con cláusulas, informe de interés legítimo.", RiskLevel: "Alto"},
-		{ID: "ctrl-2", ControlCode: "CTRL-BARSOP-01", Category: "Derechos BARSOP", Title: "Canal Electrónico y SLA de 30 Días", Description: "Comprobar canal gratuito y cumplimiento del plazo de 30 días corridos.", LegalArticle: "Art. 12", RequiredEvidence: "Portal BARSOP, log de tickets con fecha de respuesta.", RiskLevel: "Alto"},
+		{ID: "ctrl-1", ControlCode: "CTRL-LIC-01", Category: "Licitud y Principios", Title: "Existencia de Base Legal de Licitud", Description: "Verificar que cada tratamiento cuente con base legal válida documentada.", LegalArticle: "Art. 4 y 13", RequiredEvidence: "Registro de consentimientos, contratos con cláusulas, informe de interés legítimo.", RiskLevel: "Alto", LiveEvidenceRef: "RAT: 4 actividades inventariadas (100% con base legal declarada)", AutoEvaluated: true},
+		{ID: "ctrl-2", ControlCode: "CTRL-BARSOP-01", Category: "Derechos BARSOP", Title: "Canal Electrónico y SLA de 30 Días", Description: "Comprobar canal gratuito y cumplimiento del plazo de 30 días corridos.", LegalArticle: "Art. 12", RequiredEvidence: "Portal BARSOP, log de tickets con fecha de respuesta.", RiskLevel: "Alto", LiveEvidenceRef: "Buzón BARSOP: 3 solicitudes procesadas (1 vencida sin respuesta)", AutoEvaluated: true},
 		{ID: "ctrl-3", ControlCode: "CTRL-SEG-01", Category: "Seguridad y Brechas", Title: "Cifrado y Control de Accesos (MFA / RBAC)", Description: "Verificar cifrado AES-256 en reposo, TLS 1.3 y MFA para accesos con privilegios.", LegalArticle: "Art. 15", RequiredEvidence: "Configuración de DB cifrada, certificados TLS, matriz RBAC.", RiskLevel: "Alto"},
-		{ID: "ctrl-4", ControlCode: "CTRL-BREACH-01", Category: "Seguridad y Brechas", Title: "Protocolo de Notificación de 72 Horas", Description: "Verificar procedimiento formal de respuesta y notificación a la Agencia en 72h.", LegalArticle: "Art. 16", RequiredEvidence: "Plan de respuesta a incidentes, registro de brechas, plantilla oficial.", RiskLevel: "Alto"},
+		{ID: "ctrl-4", ControlCode: "CTRL-BREACH-01", Category: "Seguridad y Brechas", Title: "Protocolo de Notificación de 72 Horas", Description: "Verificar procedimiento formal de respuesta y notificación a la Agencia en 72h.", LegalArticle: "Art. 16", RequiredEvidence: "Plan de respuesta a incidentes, registro de brechas, plantilla oficial.", RiskLevel: "Alto", LiveEvidenceRef: "Libro de Brechas: 1 incidente evaluado y contenido dentro de 48h", AutoEvaluated: true},
 		{ID: "ctrl-5", ControlCode: "CTRL-RAT-01", Category: "Gobernanza y DPD", Title: "Registro de Actividades de Tratamiento (RAT)", Description: "Inventario completo de tratamientos actualizado.", LegalArticle: "Art. 19", RequiredEvidence: "Documento RAT con finalidades, bases y categorías.", RiskLevel: "Medio"},
 		{ID: "ctrl-6", ControlCode: "CTRL-DPD-01", Category: "Gobernanza y DPD", Title: "Designación y Publicación del DPD", Description: "Nombramiento formal del Delegado de Protección de Datos (si aplica).", LegalArticle: "Art. 22 al 24", RequiredEvidence: "Acta directiva, contrato DPD, publicación web.", RiskLevel: "Medio"},
-		{ID: "ctrl-7", ControlCode: "CTRL-DPA-01", Category: "Encargados y DPA", Title: "Contratos de Tratamiento con Proveedores (DPA)", Description: "Contratos firmados con el 100% de proveedores con acceso a datos.", LegalArticle: "Art. 18", RequiredEvidence: "Inventario de proveedores, contratos DPA firmados.", RiskLevel: "Alto"},
+		{ID: "ctrl-7", ControlCode: "CTRL-DPA-01", Category: "Encargados y DPA", Title: "Contratos de Tratamiento con Proveedores (DPA)", Description: "Contratos firmados con el 100% de proveedores con acceso a datos.", LegalArticle: "Art. 18", RequiredEvidence: "Inventario de proveedores, contratos DPA firmados.", RiskLevel: "Alto", LiveEvidenceRef: "Gestor DPA: 3/4 proveedores firmados (75% cobertura - 1 pendiente crítico)", AutoEvaluated: true},
 		{ID: "ctrl-8", ControlCode: "CTRL-EIPD-01", Category: "Gobernanza y DPD", Title: "Evaluaciones de Impacto en Alto Riesgo", Description: "Comprobar que tratamientos de IA o biometría cuenten con EIPD previa.", LegalArticle: "Art. 26", RequiredEvidence: "Informes de EIPD firmados por el DPD y dirección.", RiskLevel: "Medio"},
 	}
 }
@@ -675,5 +675,160 @@ func GetCountdownInfo() domain.CountdownInfo {
 		HoursRemaining:      hours,
 		Milestones:          GetInitialMilestones(),
 		EnforcementNote:     "La nueva ley de protección de datos personales de Chile entra en vigencia total el 1 de diciembre de 2026. Todas las organizaciones públicas y privadas deben estar 100% adecuadas.",
+	}
+}
+
+func GetInitialRatActivities() []domain.RatActivity {
+	return []domain.RatActivity{
+		{
+			ID:               "rat-1",
+			Name:             "Gestión de Nómina y Recursos Humanos",
+			LawfulBasis:      "Ejecución de Contrato & Obligación Legal",
+			OwnerDept:        "Gerencia de Personas",
+			DataCategories:   []string{"RUT", "Nombre", "Cuenta Bancaria", "Domicilio", "Previsión"},
+			RetentionPeriod:  "5 años posteriores al término del vínculo laboral",
+			SecurityMeasures: "Cifrado AES-256 en reposo, MFA obligatorio, control RBAC",
+			HasSensitiveData: true,
+		},
+		{
+			ID:               "rat-2",
+			Name:             "Facturación y Cobranza Comercial",
+			LawfulBasis:      "Obligación Legal Tributaria (SII) & Contrato",
+			OwnerDept:        "Administración y Finanzas",
+			DataCategories:   []string{"RUT", "Razón Social / Nombre", "Dirección Tributaria", "Historial de Pagos"},
+			RetentionPeriod:  "6 años según prescripción tributaria",
+			SecurityMeasures: "Servidor cifrado, backups diarios inmutables",
+			HasSensitiveData: false,
+		},
+		{
+			ID:               "rat-3",
+			Name:             "Marketing Digital y Boletín Informativo",
+			LawfulBasis:      "Consentimiento Expreso del Titular (Revocable)",
+			OwnerDept:        "Marketing y Crecimiento",
+			DataCategories:   []string{"Email", "Nombre", "Preferencias de Compra"},
+			RetentionPeriod:  "Hasta la revocación del consentimiento",
+			SecurityMeasures: "CMP con log de revocación y tokenización de emails",
+			HasSensitiveData: false,
+		},
+		{
+			ID:               "rat-4",
+			Name:             "Control de Acceso Físico y Videovigilancia",
+			LawfulBasis:      "Interés Legítimo Ponderado (Seguridad de Instalaciones)",
+			OwnerDept:        "Seguridad y Operaciones",
+			DataCategories:   []string{"Imágenes de cámaras", "Horario de ingreso"},
+			RetentionPeriod:  "30 días corridos",
+			SecurityMeasures: "Grabador en sala protegida, cifrado de video",
+			HasSensitiveData: true,
+		},
+	}
+}
+
+func GetInitialDpaContracts() []domain.DpaContract {
+	return []domain.DpaContract{
+		{
+			ID:                     "dpa-1",
+			VendorName:             "Amazon Web Services (AWS)",
+			ServiceType:            "Cloud Hosting & Base de Datos",
+			DataCategories:         "Datos de clientes, usuarios web, backups",
+			HasSignedDpa:           true,
+			SignatureDate:          "2026-01-15",
+			RiskLevel:              "Alto",
+			SecurityCertifications: "ISO 27001, SOC 2 Type II, PCI-DSS",
+			Notes:                  "Cláusula de cifrado y no subcontratación validada.",
+		},
+		{
+			ID:                     "dpa-2",
+			VendorName:             "Salesforce Inc.",
+			ServiceType:            "CRM & Gestión Comercial",
+			DataCategories:         "Nombres, emails, historial comercial",
+			HasSignedDpa:           true,
+			SignatureDate:          "2026-02-10",
+			RiskLevel:              "Alto",
+			SecurityCertifications: "SOC 2 Type II, ISO 27701",
+			Notes:                  "DPA corporativo estándar con cláusulas contractuales tipo.",
+		},
+		{
+			ID:                     "dpa-3",
+			VendorName:             "CallCenter Externo SpA",
+			ServiceType:            "Atención Telefónica y Soporte",
+			DataCategories:         "Grabaciones de voz, RUT, datos de contacto",
+			HasSignedDpa:           false,
+			SignatureDate:          "",
+			RiskLevel:              "Alto",
+			SecurityCertifications: "Pendiente de auditoría",
+			Notes:                  "ALERTA: Falta firma de anexo DPA obligatorio antes de Dic 2026.",
+		},
+		{
+			ID:                     "dpa-4",
+			VendorName:             "Software Contable SaaS",
+			ServiceType:            "Facturación y Nómina",
+			DataCategories:         "RUTs de empleados, salarios, datos bancarios",
+			HasSignedDpa:           true,
+			SignatureDate:          "2026-03-01",
+			RiskLevel:              "Medio",
+			SecurityCertifications: "ISO 27001",
+			Notes:                  "Anexo de destrucción de datos al término del contrato firmado.",
+		},
+	}
+}
+
+func GetInitialIncidentLogs() []domain.IncidentLog {
+	return []domain.IncidentLog{
+		{
+			ID:                    "inc-1",
+			IncidentCode:          "INC-2026-001",
+			Title:                 "Intento de Exfiltración Bloqueado en Endpoint API",
+			DiscoveryDateStr:      "2026-08-28 14:30",
+			ThreatType:            "Acceso no autorizado",
+			AffectedDataTypes:     "Tokens de sesión y consultas de prueba",
+			EstimatedRecordsCount: 15,
+			HighRiskForTitulars:   false,
+			HoursElapsed:          48,
+			HoursRemaining72:      24,
+			Status:                "En Evaluación (12-36h)",
+			MitigationSummary:     "IP bloqueada en WAF, credenciales de API rotadas de inmediato, sin compromiso de datos sensibles.",
+			AgencyNotificationDoc: "Reporte preliminar interno completado. No requirió notificación a titulares al no existir riesgo alto.",
+		},
+	}
+}
+
+func GetInitialTrackedRequests() []domain.CitizenTrackedRequest {
+	return []domain.CitizenTrackedRequest{
+		{
+			ID:               "req-1",
+			TrackingCode:     "BARSOP-2026-7891",
+			RightType:        "Acceso",
+			ApplicantName:    "Camila Silva",
+			RecipientCompany: "Banco Metropolitano",
+			RequestDateStr:   "2026-08-15",
+			DeadlineDateStr:  "2026-09-14",
+			DaysRemaining:    12,
+			Status:           "En Plazo",
+			CanFileComplaint: false,
+		},
+		{
+			ID:               "req-2",
+			TrackingCode:     "BARSOP-2026-4412",
+			RightType:        "Supresión",
+			ApplicantName:    "Juan Pérez González",
+			RecipientCompany: "App Delivery Express",
+			RequestDateStr:   "2026-07-20",
+			DeadlineDateStr:  "2026-08-19",
+			DaysRemaining:    0,
+			Status:           "Vencida (Expirada)",
+			CanFileComplaint: true,
+		},
+		{
+			ID:               "req-3",
+			TrackingCode:     "BARSOP-2026-9934",
+			RightType:        "Oposición",
+			ApplicantName:    "Rodrigo Muñoz",
+			RecipientCompany: "Retail Marketing SpA",
+			RequestDateStr:   "2026-08-01",
+			DeadlineDateStr:  "2026-08-31",
+			DaysRemaining:    0,
+			Status:           "Respondida",
+			CanFileComplaint: false,
+		},
 	}
 }

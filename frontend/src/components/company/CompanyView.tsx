@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Module } from '../../types';
 import { GapAnalysisModal } from './GapAnalysisModal';
 import { RatViewer } from './RatViewer';
-import { Building2, Award, Database, AlertOctagon, UserCheck, ShieldCheck, ChevronRight, Sparkles, FileText } from 'lucide-react';
+import { DpaManagerModal } from './DpaManagerModal';
+import { IncidentManagerModal } from './IncidentManagerModal';
+import { Building2, Award, Database, AlertOctagon, UserCheck, ShieldCheck, ChevronRight, Sparkles, Shield, FileText } from 'lucide-react';
 
 interface CompanyViewProps {
   modules: Module[];
@@ -12,6 +14,8 @@ interface CompanyViewProps {
 export const CompanyView: React.FC<CompanyViewProps> = ({ modules, onSelectModule }) => {
   const [gapModalOpen, setGapModalOpen] = useState(false);
   const [ratModalOpen, setRatModalOpen] = useState(false);
+  const [dpaModalOpen, setDpaModalOpen] = useState(false);
+  const [incidentModalOpen, setIncidentModalOpen] = useState(false);
 
   const level3 = modules.filter((m) => m.level === 3);
   const level4 = modules.filter((m) => m.level === 4);
@@ -26,25 +30,39 @@ export const CompanyView: React.FC<CompanyViewProps> = ({ modules, onSelectModul
             <span>Gobernanza & Cumplimiento Empresarial</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Obligaciones, RAT y Gestión de Riesgos para Organizaciones
+            Obligaciones, RAT, Proveedores DPA y Protocolo 72 Horas
           </h2>
           <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-            Implementa las medidas de responsabilidad proactiva (<em>Accountability</em>), inventario de tratamientos (RAT), contratos DPA con proveedores y protocolo de brechas de 72 horas.
+            Consola integral para el Directorio, Oficiales de Cumplimiento (DPD) y Gerencias. Mantén al día el inventario de tratamientos, supervisa contratos con encargados y responde ante brechas de seguridad.
           </p>
           <div className="pt-2 flex flex-wrap gap-3">
             <button
               onClick={() => setGapModalOpen(true)}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all"
+              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all"
             >
               <Award className="w-4 h-4" />
-              <span>Realizar Gap Analysis (Autodiagnóstico)</span>
+              <span>Autodiagnóstico (Gap Analysis)</span>
             </button>
             <button
               onClick={() => setRatModalOpen(true)}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
             >
               <Database className="w-4 h-4 text-emerald-400" />
-              <span>Gestionar Inventario RAT</span>
+              <span>Inventario RAT</span>
+            </button>
+            <button
+              onClick={() => setDpaModalOpen(true)}
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+            >
+              <ShieldCheck className="w-4 h-4 text-sky-400" />
+              <span>Gestor Proveedores DPA</span>
+            </button>
+            <button
+              onClick={() => setIncidentModalOpen(true)}
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+            >
+              <AlertOctagon className="w-4 h-4 text-rose-400" />
+              <span>Libro de Brechas (72h)</span>
             </button>
           </div>
         </div>
@@ -52,33 +70,51 @@ export const CompanyView: React.FC<CompanyViewProps> = ({ modules, onSelectModul
 
       {/* Highlights Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4.5 space-y-2">
-          <div className="flex items-center gap-2 text-rose-400 text-xs font-bold">
-            <AlertOctagon className="w-4 h-4" />
-            <span>Protocolo de 72 Horas</span>
+        <div
+          onClick={() => setIncidentModalOpen(true)}
+          className="bg-slate-900 border border-slate-800 hover:border-rose-500/40 rounded-xl p-4.5 space-y-2 cursor-pointer transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-rose-400 text-xs font-bold">
+              <AlertOctagon className="w-4 h-4" />
+              <span>Protocolo de 72 Horas</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-rose-400 transition-colors" />
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Obligación estricta de notificar a la Agencia ante vulneraciones de seguridad que representen riesgo para los titulares.
+            Reporte formal a la Agencia dentro de 72h ante vulneraciones que entrañen riesgo para los titulares.
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4.5 space-y-2">
-          <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
-            <UserCheck className="w-4 h-4" />
-            <span>Delegado de Datos (DPD)</span>
+        <div
+          onClick={() => setDpaModalOpen(true)}
+          className="bg-slate-900 border border-slate-800 hover:border-sky-500/40 rounded-xl p-4.5 space-y-2 cursor-pointer transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sky-400 text-xs font-bold">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Contratos DPA con Proveedores</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-sky-400 transition-colors" />
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Designación obligatoria en el sector público y organizaciones con tratamiento masivo o sistemático de datos personales.
+            Supervisión contractual obligatoria para el 100% de proveedores tecnológicos con acceso a bases de datos.
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4.5 space-y-2">
-          <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Contratos DPA con Proveedores</span>
+        <div
+          onClick={() => setRatModalOpen(true)}
+          className="bg-slate-900 border border-slate-800 hover:border-emerald-500/40 rounded-xl p-4.5 space-y-2 cursor-pointer transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+              <Database className="w-4 h-4" />
+              <span>Registro RAT Obligatorio</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors" />
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Todos los encargados de tratamiento (cloud, SaaS, soporte) deben firmar anexos de confidencialidad y no subcontratación.
+            Inventario unificado de bases de datos, finalidades, plazos de conservación y bases de licitud.
           </p>
         </div>
       </div>
@@ -147,6 +183,8 @@ export const CompanyView: React.FC<CompanyViewProps> = ({ modules, onSelectModul
       {/* Modals */}
       <GapAnalysisModal isOpen={gapModalOpen} onClose={() => setGapModalOpen(false)} />
       <RatViewer isOpen={ratModalOpen} onClose={() => setRatModalOpen(false)} />
+      <DpaManagerModal isOpen={dpaModalOpen} onClose={() => setDpaModalOpen(false)} />
+      <IncidentManagerModal isOpen={incidentModalOpen} onClose={() => setIncidentModalOpen(false)} />
     </div>
   );
 };

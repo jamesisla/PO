@@ -5,9 +5,16 @@ import {
   SearchResultResponse,
   BarsopRequestInput,
   BarsopRequestResult,
+  CitizenTrackedRequest,
+  ApdpComplaintInput,
+  ApdpComplaintResult,
+  DpaContract,
+  IncidentLog,
+  RatActivity,
   GapQuestion,
   GapSubmission,
   GapResult,
+  InstitutionalStatus,
   AuditControl,
   AuditSubmission,
   AuditReport,
@@ -63,6 +70,87 @@ export const api = {
       const err = await res.json();
       throw new Error(err.error || 'Error al generar la solicitud BARSOP');
     }
+    return res.json();
+  },
+
+  async getCitizenRequests(): Promise<CitizenTrackedRequest[]> {
+    const res = await fetch(`${BASE_URL}/citizen/requests`);
+    if (!res.ok) throw new Error('Error al obtener solicitudes');
+    return res.json();
+  },
+
+  async generateApdpComplaint(input: ApdpComplaintInput): Promise<ApdpComplaintResult> {
+    const res = await fetch(`${BASE_URL}/citizen/complaint-apdp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Error al generar reclamación ante la APDP');
+    }
+    return res.json();
+  },
+
+  async getInstitutionalStatus(): Promise<InstitutionalStatus> {
+    const res = await fetch(`${BASE_URL}/institution/status`);
+    if (!res.ok) throw new Error('Error al obtener estado institucional');
+    return res.json();
+  },
+
+  async getRatActivities(): Promise<RatActivity[]> {
+    const res = await fetch(`${BASE_URL}/institution/rat`);
+    if (!res.ok) throw new Error('Error al obtener actividades RAT');
+    return res.json();
+  },
+
+  async addRatActivity(act: Partial<RatActivity>): Promise<RatActivity> {
+    const res = await fetch(`${BASE_URL}/institution/rat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(act),
+    });
+    if (!res.ok) throw new Error('Error al guardar actividad RAT');
+    return res.json();
+  },
+
+  async getDpaContracts(): Promise<DpaContract[]> {
+    const res = await fetch(`${BASE_URL}/institution/dpa`);
+    if (!res.ok) throw new Error('Error al obtener contratos DPA');
+    return res.json();
+  },
+
+  async addDpaContract(dpa: Partial<DpaContract>): Promise<DpaContract> {
+    const res = await fetch(`${BASE_URL}/institution/dpa`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dpa),
+    });
+    if (!res.ok) throw new Error('Error al guardar contrato DPA');
+    return res.json();
+  },
+
+  async toggleDpa(id: string): Promise<DpaContract> {
+    const res = await fetch(`${BASE_URL}/institution/dpa/${encodeURIComponent(id)}/toggle`, {
+      method: 'PUT',
+    });
+    if (!res.ok) throw new Error('Error al actualizar estado DPA');
+    return res.json();
+  },
+
+  async getIncidents(): Promise<IncidentLog[]> {
+    const res = await fetch(`${BASE_URL}/institution/incidents`);
+    if (!res.ok) throw new Error('Error al obtener registro de incidentes');
+    return res.json();
+  },
+
+  async addIncident(inc: Partial<IncidentLog>): Promise<IncidentLog> {
+    const res = await fetch(`${BASE_URL}/institution/incidents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inc),
+    });
+    if (!res.ok) throw new Error('Error al registrar incidente');
     return res.json();
   },
 

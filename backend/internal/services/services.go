@@ -590,3 +590,334 @@ func (s *SearchService) Search(query string, modeFilter string) *domain.SearchRe
 		},
 	}
 }
+
+
+type InstitutionalService struct {
+	companyName     string
+	ratActivities   []domain.RatActivity
+	dpaContracts    []domain.DpaContract
+	incidents       []domain.IncidentLog
+	citizenRequests []domain.CitizenTrackedRequest
+	gapScore        float64
+	gapMaturity     string
+}
+
+func NewInstitutionalService() *InstitutionalService {
+	return &InstitutionalService{
+		companyName:     "Empresa Demo & Institución de Ejemplo",
+		ratActivities:   data.GetInitialRatActivities(),
+		dpaContracts:    data.GetInitialDpaContracts(),
+		incidents:       data.GetInitialIncidentLogs(),
+		citizenRequests: data.GetInitialTrackedRequests(),
+		gapScore:        72.5,
+		gapMaturity:     "En Desarrollo (Riesgo Moderado de Sanciones)",
+	}
+}
+
+func (s *InstitutionalService) GetStatus() *domain.InstitutionalStatus {
+	// 1. RAT calculations
+	ratTotal := len(s.ratActivities)
+	ratLicitudCount := 0
+	for _, act := range s.ratActivities {
+		if strings.TrimSpace(act.LawfulBasis) != "" {
+			ratLicitudCount++
+		}
+	}
+	ratLicitudPct := 0.0
+	if ratTotal > 0 {
+		ratLicitudPct = math.Round((float64(ratLicitudCount)/float64(ratTotal))*1000) / 10
+	}
+
+	// 2. DPA calculations
+	dpaTotal := len(s.dpaContracts)
+	dpaSigned := 0
+	for _, d := range s.dpaContracts {
+		if d.HasSignedDpa {
+			dpaSigned++
+		}
+	}
+	dpaPct := 0.0
+	if dpaTotal > 0 {
+		dpaPct = math.Round((float64(dpaSigned)/float64(dpaTotal))*1000) / 10
+	}
+
+	// 3. BARSOP SLA calculations
+	barsopTotal := len(s.citizenRequests)
+	barsopResolved := 0
+	barsopPending := 0
+	barsopOverdue := 0
+	for _, req := range s.citizenRequests {
+		if req.Status == "Respondida" {
+			barsopResolved++
+		} else if req.Status == "Vencida (Expirada)" {
+			barsopOverdue++
+		} else {
+			barsopPending++
+		}
+	}
+
+	// 4. Incidents calculation
+	incTotal := len(s.incidents)
+	incCompliedPct := 100.0
+	for _, inc := range s.incidents {
+		if inc.HoursElapsed > 72 && inc.Status != "Reportado a la APDP (36-72h)" && inc.Status != "Cerrado" {
+			incCompliedPct = 50.0
+		}
+	}
+
+	// 5. Overall Institutional Score
+	// RAT: 25%, DPA: 25%, BARSOP: 25%, Gap: 25%
+	barsopScore := 100.0
+	if barsopTotal > 0 {
+		barsopScore = math.Max(0, 100.0-(float64(barsopOverdue)*30.0))
+	}
+	overallScore := math.Round(((ratLicitudPct*0.25) + (dpaPct*0.25) + (barsopScore*0.25) + (s.gapScore*0.25))*10) / 10
+
+	var opinion string
+	var alerts []string
+
+	if dpaSigned < dpaTotal {
+		alerts = append(alerts, fmt.Sprintf("Existen %d de %d proveedores con acceso a datos sin contrato DPA firmado (Riesgo Art. 18)", dpaTotal-dpaSigned, dpaTotal))
+	}
+	if barsopOverdue > 0 {
+		alerts = append(alerts, fmt.Sprintf("Hay %d solicitud(es) BARSOP con plazo de 30 días corridos vencido sin respuesta (Riesgo Infracción Grave Art. 12)", barsopOverdue))
+	}
+	if ratTotal < 5 {
+		alerts = append(alerts, "El inventario RAT cuenta con pocos tratamientos registrados; se recomienda auditar áreas comercial y TI.")
+	}
+
+	if overallScore >= 85 && barsopOverdue == 0 && dpaSigned == dpaTotal {
+		opinion = "Conforme Sin Salvedades (Listo para Entrada en Vigor 1 Dic 2026)"
+	} else if overallScore >= 60 {
+		opinion = "Conforme Con Salvedades (Requiere Plan de Remediación Inmediato)"
+	} else {
+		opinion = "Opinión Adversa / No Conforme (Alto Riesgo Sancionatorio APDP)"
+	}
+
+	return &domain.InstitutionalStatus{
+		CompanyName:                s.companyName,
+		LastUpdated:                time.Now().Format("02/01/2006 15:04"),
+		OverallInstitutionalScore:  overallScore,
+		MaturityLevel:              s.gapMaturity,
+		AuditorRecommendedOpinion:  opinion,
+		RatTreatmentsCount:         ratTotal,
+		RatLicitudPercent:          ratLicitudPct,
+		RatActivities:              s.ratActivities,
+		DpaVendorsTotal:            dpaTotal,
+		DpaSignedCount:             dpaSigned,
+		DpaCompliancePercent:       dpaPct,
+		DpaContracts:               s.dpaContracts,
+		BarsopTotalRequests:        barsopTotal,
+		BarsopResolvedCount:        barsopResolved,
+		BarsopPendingCount:         barsopPending,
+		BarsopOverdueCount:         barsopOverdue,
+		BarsopAvgResponseDays:      14.5,
+		IncidentsTotal:             incTotal,
+		Incidents72hCompliedPercent: incCompliedPct,
+		Incidents:                  s.incidents,
+		KeyAuditAlerts:             alerts,
+	}
+}
+
+func (s *InstitutionalService) GetRatActivities() []domain.RatActivity {
+	return s.ratActivities
+}
+
+func (s *InstitutionalService) AddRatActivity(act domain.RatActivity) domain.RatActivity {
+	if act.ID == "" {
+		act.ID = fmt.Sprintf("rat-%d", time.Now().UnixNano())
+	}
+	s.ratActivities = append([]domain.RatActivity{act}, s.ratActivities...)
+	return act
+}
+
+func (s *InstitutionalService) GetDpaContracts() []domain.DpaContract {
+	return s.dpaContracts
+}
+
+func (s *InstitutionalService) AddDpaContract(dpa domain.DpaContract) domain.DpaContract {
+	if dpa.ID == "" {
+		dpa.ID = fmt.Sprintf("dpa-%d", time.Now().UnixNano())
+	}
+	s.dpaContracts = append([]domain.DpaContract{dpa}, s.dpaContracts...)
+	return dpa
+}
+
+func (s *InstitutionalService) ToggleDpa(id string) (*domain.DpaContract, error) {
+	for i := range s.dpaContracts {
+		if s.dpaContracts[i].ID == id {
+			s.dpaContracts[i].HasSignedDpa = !s.dpaContracts[i].HasSignedDpa
+			if s.dpaContracts[i].HasSignedDpa {
+				s.dpaContracts[i].SignatureDate = time.Now().Format("2006-01-02")
+			} else {
+				s.dpaContracts[i].SignatureDate = ""
+			}
+			return &s.dpaContracts[i], nil
+		}
+	}
+	return nil, fmt.Errorf("contrato no encontrado")
+}
+
+func (s *InstitutionalService) GetIncidents() []domain.IncidentLog {
+	return s.incidents
+}
+
+func (s *InstitutionalService) AddIncident(inc domain.IncidentLog) domain.IncidentLog {
+	if inc.ID == "" {
+		inc.ID = fmt.Sprintf("inc-%d", time.Now().UnixNano())
+	}
+	if inc.IncidentCode == "" {
+		inc.IncidentCode = fmt.Sprintf("INC-2026-%03d", len(s.incidents)+1)
+	}
+	if inc.DiscoveryDateStr == "" {
+		inc.DiscoveryDateStr = time.Now().Format("02/01/2006 15:04")
+	}
+	inc.HoursRemaining72 = 72 - inc.HoursElapsed
+	if inc.HoursRemaining72 < 0 {
+		inc.HoursRemaining72 = 0
+	}
+
+	doc := fmt.Sprintf(`FORMULARIO OFICIAL DE NOTIFICACIÓN DE VULNERACIÓN DE SEGURIDAD A LA AGENCIA
+(Conforme al Artículo 16 de la Ley de Protección de Datos Personales de Chile - Plazo Máximo 72 Horas)
+
+CÓDIGO DE INCIDENTE: %s
+FECHA Y HORA DE DETECCIÓN: %s
+RESPONSABLE DEL TRATAMIENTO: %s
+TIPO DE AMENAZA / EVENTO: %s
+
+1. NATURALEZA DE LA VULNERACIÓN:
+%s
+
+2. CATEGORÍAS DE DATOS Y REGISTROS AFECTADOS:
+Tipos de datos: %s
+Número estimado de personas afectadas: %d
+¿Representa alto riesgo para los derechos de los titulares?: %v
+
+3. MEDIDAS CORRECTIVAS Y DE CONTENCIÓN ADOPTADAS:
+%s
+
+4. PLAN DE COMUNICACIÓN A LOS TITULARES AFECTADOS:
+En cumplimiento de la ley, si el riesgo es alto se notificará directamente a cada titular individualmente en un plazo no superior a 24 horas adicionales.
+
+DECLARACIÓN DE DILIGENCIA:
+Este informe preliminar se remite dentro del plazo legal perentorio de 72 horas contadas desde la toma de conocimiento del incidente.
+`,
+		inc.IncidentCode,
+		inc.DiscoveryDateStr,
+		s.companyName,
+		inc.ThreatType,
+		inc.Title,
+		inc.AffectedDataTypes,
+		inc.EstimatedRecordsCount,
+		inc.HighRiskForTitulars,
+		inc.MitigationSummary,
+	)
+
+	inc.AgencyNotificationDoc = doc
+	s.incidents = append([]domain.IncidentLog{inc}, s.incidents...)
+	return inc
+}
+
+func (s *InstitutionalService) GetCitizenRequests() []domain.CitizenTrackedRequest {
+	return s.citizenRequests
+}
+
+func (s *InstitutionalService) AddCitizenRequest(req domain.CitizenTrackedRequest) domain.CitizenTrackedRequest {
+	if req.ID == "" {
+		req.ID = fmt.Sprintf("req-%d", time.Now().UnixNano())
+	}
+	if req.TrackingCode == "" {
+		req.TrackingCode = fmt.Sprintf("BARSOP-2026-%04d", time.Now().Unix()%10000)
+	}
+	req.RequestDateStr = time.Now().Format("02/01/2006")
+	deadline := time.Now().AddDate(0, 0, 30)
+	req.DeadlineDateStr = deadline.Format("02/01/2006")
+	req.DaysRemaining = 30
+	req.Status = "En Plazo"
+	req.CanFileComplaint = false
+
+	s.citizenRequests = append([]domain.CitizenTrackedRequest{req}, s.citizenRequests...)
+	return req
+}
+
+func (s *InstitutionalService) GenerateApdpComplaint(input domain.ApdpComplaintInput) (*domain.ApdpComplaintResult, error) {
+	if input.ApplicantName == "" || input.RespondentCompany == "" {
+		return nil, fmt.Errorf("nombre del reclamante y empresa son obligatorios")
+	}
+
+	complaintCode := fmt.Sprintf("REC-APDP-2026-%04d", time.Now().Unix()%10000)
+	filingDate := time.Now().Format("02/01/2006")
+
+	doc := fmt.Sprintf(`RECLAMACIÓN FORMAL ANTE LA AGENCIA DE PROTECCIÓN DE DATOS PERSONALES (APDP)
+(Por Infracción al Artículo 12 de la Ley de Protección de Datos Personales de Chile - Tutela de Derechos BARSOP)
+
+CÓDIGO DE INGRESO: %s
+FECHA DE PRESENTACIÓN: %s
+
+A: CONSEJO DIRECTIVO / DIRECCIÓN DE FISCALIZACIÓN
+AGENCIA DE PROTECCIÓN DE DATOS PERSONALES DE CHILE
+
+DE:
+RECLAMANTE / TITULAR DE DATOS: %s
+RUT: %s
+CORREO ELECTRÓNICO: %s
+TELÉFONO DE CONTACTO: %s
+
+CONTRA:
+ENTIDAD RECLAMADA (RESPONSABLE DEL TRATAMIENTO): %s
+TIPO DE DERECHO VULNERADO: DERECHO DE %s
+FECHA DE PRESENTACIÓN DE SOLICITUD PREVIA: %s
+
+I. ANTECEDENTES Y CAUSAL DE LA RECLAMACIÓN:
+Vengo en interponer formal reclamación administrativa en contra de la entidad reclamada individualizada, por la siguiente causal legal:
+-> %s.
+
+II. RELACIÓN CIRCUNSTANCIADA DE LOS HECHOS:
+1. Con fecha %s, el suscrito ejerció formalmente su derecho de %s mediante canal oficial del responsable, constando el debido acuse de recibo.
+2. Habiendo transcurrido íntegramente el plazo perentorio e improrrogable de 30 DÍAS CORRIDOS consagrado en el Artículo 12 de la ley, la entidad reclamada no emitió respuesta fundada alguna (configurando silencio administrativo ilícito) o denegó injustificadamente el ejercicio del derecho.
+3. Detalle adicional de los hechos:
+%s
+
+III. PETITORIO LEGAL A LA AGENCIA:
+Por tanto, en virtud de las facultades fiscalizadoras y sancionatorias conferidas a la Agencia en los Artículos 34 y siguientes de la Ley, solicito:
+1. Declarar admisible la presente reclamación y ordenar a la entidad reclamada dar cumplimiento inmediato e íntegro a la solicitud de %s sin costo alguno.
+2. Iniciar el correspondiente procedimiento sancionatorio en contra del infractor por la comisión de infracción grave, aplicando las multas de hasta 10.000 UTM (o 20.000 UTM / 4%% de ingresos en caso de reincidencia).
+
+Firma del Reclamante:
+_______________________________________
+%s
+RUT: %s
+`,
+		complaintCode,
+		filingDate,
+		input.ApplicantName,
+		input.ApplicantRUT,
+		input.ApplicantEmail,
+		input.ApplicantPhone,
+		input.RespondentCompany,
+		strings.ToUpper(input.RightType),
+		input.OriginalDateStr,
+		input.ComplaintReason,
+		input.OriginalDateStr,
+		input.RightType,
+		input.SpecificFacts,
+		strings.ToUpper(input.RightType),
+		input.ApplicantName,
+		input.ApplicantRUT,
+	)
+
+	return &domain.ApdpComplaintResult{
+		ComplaintCode:     complaintCode,
+		ApplicantName:     input.ApplicantName,
+		RespondentCompany: input.RespondentCompany,
+		FilingDateStr:     filingDate,
+		DocumentText:      doc,
+		LegalArticles:     []string{"Art. 12 (Procedimiento de Tutela de Derechos)", "Art. 34 (Atribuciones de la Agencia)", "Art. 39 letra b) (Infracción Grave por falta de respuesta BARSOP)"},
+		AgencySubmissionTips: []string{
+			"1. Guarda una copia firmada en PDF o impresa de esta reclamación.",
+			"2. Adjunta el comprobante con fecha de envío de tu solicitud original del día " + input.OriginalDateStr + ".",
+			"3. Ingresa este escrito a través de la oficina virtual de la Agencia de Protección de Datos Personales.",
+			"4. La Agencia notificará a la empresa otorgándole un plazo de 10 días para formular descargos.",
+		},
+	}, nil
+}

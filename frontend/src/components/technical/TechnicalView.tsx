@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Module } from '../../types';
 import { SanctionsCalculator } from './SanctionsCalculator';
-import { Terminal, Shield, Lock, Cpu, Server, CheckSquare, ChevronRight, Layers } from 'lucide-react';
+import { BlueprintsModal } from './BlueprintsModal';
+import { Terminal, Shield, Lock, Cpu, Server, CheckSquare, ChevronRight, Layers, Code2 } from 'lucide-react';
 
 interface TechnicalViewProps {
   modules: Module[];
@@ -10,6 +11,7 @@ interface TechnicalViewProps {
 
 export const TechnicalView: React.FC<TechnicalViewProps> = ({ modules, onSelectModule }) => {
   const [selectedIndustry, setSelectedIndustry] = useState<'pyme' | 'large' | 'health' | 'fintech' | 'public'>('pyme');
+  const [blueprintsOpen, setBlueprintsOpen] = useState(false);
 
   const level5 = modules.filter((m) => m.level === 5);
   const transversal = modules.filter((m) => m.level === 0);
@@ -62,22 +64,37 @@ export const TechnicalView: React.FC<TechnicalViewProps> = ({ modules, onSelectM
           <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
             Estándares operacionales requeridos: cifrado AES-256, TLS 1.3, gestión de consentimientos (CMP), automatización de SLAs de 30 días y calculadora de riesgo sancionatorio.
           </p>
+          <div className="pt-2">
+            <button
+              onClick={() => setBlueprintsOpen(true)}
+              className="px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-sky-500/20 transition-all"
+            >
+              <Code2 className="w-4 h-4" />
+              <span>Ver Blueprints de Código & Criptografía (PostgreSQL / TLS / CMP)</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Technical Architecture Highlights */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4.5 space-y-2">
+        <div
+          onClick={() => setBlueprintsOpen(true)}
+          className="bg-slate-900 border border-slate-800 hover:border-sky-500/40 rounded-xl p-4.5 space-y-2 cursor-pointer transition-all"
+        >
           <div className="p-2 bg-sky-500/10 text-sky-400 w-fit rounded-lg">
             <Lock className="w-4 h-4" />
           </div>
           <h4 className="text-xs font-bold text-white">Cifrado & Hashing</h4>
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            AES-256 en reposo, TLS 1.3 obligatorio en tránsito y contraseñas con Argon2id o bcrypt.
+            AES-256 en reposo con pgcrypto, TLS 1.3 obligatorio en tránsito y contraseñas con Argon2id.
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4.5 space-y-2">
+        <div
+          onClick={() => setBlueprintsOpen(true)}
+          className="bg-slate-900 border border-slate-800 hover:border-emerald-500/40 rounded-xl p-4.5 space-y-2 cursor-pointer transition-all"
+        >
           <div className="p-2 bg-emerald-500/10 text-emerald-400 w-fit rounded-lg">
             <Layers className="w-4 h-4" />
           </div>
@@ -97,7 +114,10 @@ export const TechnicalView: React.FC<TechnicalViewProps> = ({ modules, onSelectM
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4.5 space-y-2">
+        <div
+          onClick={() => setBlueprintsOpen(true)}
+          className="bg-slate-900 border border-slate-800 hover:border-rose-500/40 rounded-xl p-4.5 space-y-2 cursor-pointer transition-all"
+        >
           <div className="p-2 bg-rose-500/10 text-rose-400 w-fit rounded-lg">
             <Server className="w-4 h-4" />
           </div>
@@ -183,6 +203,9 @@ export const TechnicalView: React.FC<TechnicalViewProps> = ({ modules, onSelectM
           ))}
         </div>
       </div>
+
+      {/* Blueprints Modal */}
+      <BlueprintsModal isOpen={blueprintsOpen} onClose={() => setBlueprintsOpen(false)} />
     </div>
   );
 };
