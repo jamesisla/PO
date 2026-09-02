@@ -2,6 +2,7 @@
 
 * **Proyecto:** PO — Plataforma de Protección de Datos Personales (Ley Chile 2026)
 * **Versión Actual:** `v0.2.0 (Aplicación Unificada Funcional & Módulo Auditor)`
+* **Repositorio:** `https://github.com/jamesisla/PO`
 * **Rama:** `main`
 * **Última Actualización:** 2026-09-02
 * **Vigencia Legal Objetivo:** 1 de diciembre de 2026
