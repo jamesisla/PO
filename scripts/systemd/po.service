@@ -1,0 +1,27 @@
+[Unit]
+Description=PO — Servicio de Producción
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/apps/po
+ExecStart=/opt/apps/po/app
+Restart=always
+RestartSec=3
+
+# Variables de Entorno
+Environment=PORT=8080
+Environment=ENV=production
+
+# Límites de Recursos para VM OCI (1GB RAM)
+MemoryMax=150M
+CPUQuota=90%
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/opt/apps/po/data
+
+[Install]
+WantedBy=multi-user.target
