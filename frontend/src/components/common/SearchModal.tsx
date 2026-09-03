@@ -6,13 +6,16 @@ import { Search, X, Sparkles, ArrowRight, BookOpen, ExternalLink, HelpCircle } f
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectModule: (moduleCode: string) => void;
+  onSelectModule?: (moduleCode: string) => void;
+  onSelectModuleCode?: (moduleCode: string) => void;
+  currentMode?: string;
 }
 
 export const SearchModal: React.FC<SearchModalProps> = ({
   isOpen,
   onClose,
   onSelectModule,
+  onSelectModuleCode,
 }) => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -116,7 +119,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                   <div
                     key={m.moduleCode}
                     onClick={() => {
-                      onSelectModule(m.moduleCode);
+                      if (onSelectModuleCode) onSelectModuleCode(m.moduleCode);
+                      else if (onSelectModule) onSelectModule(m.moduleCode);
                       onClose();
                     }}
                     className="p-3 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800/80 hover:border-sky-500/40 rounded-xl cursor-pointer transition-all flex items-center justify-between group"

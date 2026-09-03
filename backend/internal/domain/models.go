@@ -78,16 +78,28 @@ type BarsopRequestResult struct {
 
 // CitizenTrackedRequest represents a user request being tracked
 type CitizenTrackedRequest struct {
-	ID               string `json:"id"`
-	TrackingCode     string `json:"trackingCode"`
-	RightType        string `json:"rightType"`
-	ApplicantName    string `json:"applicantName"`
-	RecipientCompany string `json:"recipientCompany"`
-	RequestDateStr   string `json:"requestDateStr"`
-	DeadlineDateStr  string `json:"deadlineDateStr"`
-	DaysRemaining    int    `json:"daysRemaining"`
-	Status           string `json:"status"` // "En Plazo", "Riesgo Vencimiento", "Vencida (Expirada)", "Respondida", "Reclamada APDP"
-	CanFileComplaint bool   `json:"canFileComplaint"`
+	ID                 string `json:"id"`
+	TrackingCode       string `json:"trackingCode"`
+	RightType          string `json:"rightType"`
+	ApplicantName      string `json:"applicantName"`
+	ApplicantRut       string `json:"applicantRut"`
+	ApplicantEmail     string `json:"applicantEmail"`
+	ApplicantPhone     string `json:"applicantPhone"`
+	RecipientCompany   string `json:"recipientCompany"`
+	RequestDateStr     string `json:"requestDateStr"`
+	DeadlineDateStr    string `json:"deadlineDateStr"`
+	DaysRemaining      int    `json:"daysRemaining"`
+	Status             string `json:"status"` // "En Plazo", "Riesgo Vencimiento", "Aceptada / Ejecutada", "Denegada con Causal Legal", "Prórroga Fundada", "Vencida (Expirada)", "Reclamada APDP"
+	CanFileComplaint   bool   `json:"canFileComplaint"`
+	LegalGroundNotes   string `json:"legalGroundNotes"`
+	ResolvedDateStr    string `json:"resolvedDateStr"`
+	ResolvedBy         string `json:"resolvedBy"`
+}
+
+type BarsopStatusUpdateRequest struct {
+	Status           string `json:"status"` // "Aceptada / Ejecutada", "Denegada con Causal Legal", "Prórroga Fundada", "En Plazo"
+	LegalGroundNotes string `json:"legalGroundNotes"`
+	ResolvedBy       string `json:"resolvedBy"`
 }
 
 // ApdpComplaintInput input to file an APDP complaint

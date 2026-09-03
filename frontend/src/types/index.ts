@@ -73,12 +73,18 @@ export interface CitizenTrackedRequest {
   trackingCode: string;
   rightType: string;
   applicantName: string;
+  applicantRut?: string;
+  applicantEmail?: string;
+  applicantPhone?: string;
   recipientCompany: string;
   requestDateStr: string;
   deadlineDateStr: string;
   daysRemaining: number;
-  status: 'En Plazo' | 'Riesgo Vencimiento' | 'Vencida (Expirada)' | 'Respondida' | 'Reclamada APDP';
+  status: 'En Plazo' | 'Riesgo Vencimiento' | 'Aceptada / Ejecutada' | 'Denegada con Causal Legal' | 'Prórroga Fundada' | 'Vencida (Expirada)' | 'Respondida' | 'Reclamada APDP';
   canFileComplaint: boolean;
+  legalGroundNotes?: string;
+  resolvedDateStr?: string;
+  resolvedBy?: string;
 }
 
 export interface ApdpComplaintInput {

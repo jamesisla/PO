@@ -166,7 +166,9 @@ RUT: %s
 		input.ApplicantRUT,
 	)
 
+	trackingCode := fmt.Sprintf("BARSOP-2026-%04d", (time.Now().UnixNano()/1000)%10000)
 	return &domain.BarsopRequestResult{
+		TrackingCode:      trackingCode,
 		RightType:         input.RightType,
 		ApplicantName:     input.ApplicantName,
 		RecipientCompany:  input.RecipientCompany,
@@ -647,7 +649,7 @@ func (s *InstitutionalService) GetStatus() *domain.InstitutionalStatus {
 	barsopPending := 0
 	barsopOverdue := 0
 	for _, req := range s.citizenRequests {
-		if req.Status == "Respondida" {
+		if req.Status == "Aceptada / Ejecutada" || req.Status == "Denegada con Causal Legal" || req.Status == "Respondida" {
 			barsopResolved++
 		} else if req.Status == "Vencida (Expirada)" {
 			barsopOverdue++
@@ -920,4 +922,24 @@ RUT: %s
 			"4. La Agencia notificará a la empresa otorgándole un plazo de 10 días para formular descargos.",
 		},
 	}, nil
+}
+
+func (s *InstitutionalService) UpdateBarsopStatus(id string, update domain.BarsopStatusUpdateRequest) (*domain.CitizenTrackedRequest, error) {
+	for i := range s.citizenRequests {
+		if s.citizenRequests[i].ID == id || s.citizenRequests[i].TrackingCode == id {
+			s.citizenRequests[i].Status = update.Status
+			s.citizenRequests[i].LegalGroundNotes = update.LegalGroundNotes
+			s.citizenRequests[i].ResolvedBy = update.ResolvedBy
+			s.citizenRequests[i].ResolvedDateStr = time.Now().Format("02/01/2006 15:04")
+			if update.Status == "Aceptada / Ejecutada" || update.Status == "Denegada con Causal Legal" {
+				s.citizenRequests[i].DaysRemaining = 0
+				s.citizenRequests[i].CanFileComplaint = false
+			} else if update.Status == "Prórroga Fundada" {
+				s.citizenRequests[i].DaysRemaining += 30
+				s.citizenRequests[i].CanFileComplaint = false
+			}
+			return &s.citizenRequests[i], nil
+		}
+	}
+	return nil, fmt.Errorf("solicitud no encontrada")
 }

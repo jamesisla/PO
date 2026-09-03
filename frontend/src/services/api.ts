@@ -24,31 +24,41 @@ import {
 
 const BASE_URL = '/api/v1';
 
+async function handleResponse<T>(res: Response): Promise<T> {
+  const text = await res.text();
+  let data: any;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { error: text || `Error HTTP ${res.status}` };
+  }
+  if (!res.ok) {
+    throw new Error(data.error || `Error ${res.status}: ${res.statusText}`);
+  }
+  return data as T;
+}
+
 export const api = {
   async getCountdown(): Promise<CountdownInfo> {
     const res = await fetch(`${BASE_URL}/countdown`);
-    if (!res.ok) throw new Error('Error al obtener el contador');
-    return res.json();
+    return handleResponse<CountdownInfo>(res);
   },
 
   async getModules(mode?: string): Promise<Module[]> {
     const url = mode ? `${BASE_URL}/modules?mode=${encodeURIComponent(mode)}` : `${BASE_URL}/modules`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener los módulos');
-    return res.json();
+    return handleResponse<Module[]>(res);
   },
 
   async getModuleByCode(code: string): Promise<Module> {
     const res = await fetch(`${BASE_URL}/modules/${encodeURIComponent(code)}`);
-    if (!res.ok) throw new Error('Error al obtener el módulo');
-    return res.json();
+    return handleResponse<Module>(res);
   },
 
   async getGlossary(category?: string): Promise<GlossaryTerm[]> {
     const url = category ? `${BASE_URL}/glossary?category=${encodeURIComponent(category)}` : `${BASE_URL}/glossary`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Error al obtener el glosario');
-    return res.json();
+    return handleResponse<GlossaryTerm[]>(res);
   },
 
   async search(query: string, mode?: string): Promise<SearchResultResponse> {
@@ -56,8 +66,7 @@ export const api = {
     if (query) params.set('q', query);
     if (mode) params.set('mode', mode);
     const res = await fetch(`${BASE_URL}/search?${params.toString()}`);
-    if (!res.ok) throw new Error('Error al realizar la búsqueda');
-    return res.json();
+    return handleResponse<SearchResultResponse>(res);
   },
 
   async generateBarsop(input: BarsopRequestInput): Promise<BarsopRequestResult> {
@@ -66,17 +75,21 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Error al generar la solicitud BARSOP');
-    }
-    return res.json();
+    return handleResponse<BarsopRequestResult>(res);
   },
 
   async getCitizenRequests(): Promise<CitizenTrackedRequest[]> {
     const res = await fetch(`${BASE_URL}/citizen/requests`);
-    if (!res.ok) throw new Error('Error al obtener solicitudes');
-    return res.json();
+    return handleResponse<CitizenTrackedRequest[]>(res);
+  },
+
+  async updateBarsopStatus(id: string, update: { status: string; legalGroundNotes: string; resolvedBy: string }): Promise<CitizenTrackedRequest> {
+    const res = await fetch(`${BASE_URL}/barsop/requests/${encodeURIComponent(id)}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(update),
+    });
+    return handleResponse<CitizenTrackedRequest>(res);
   },
 
   async generateApdpComplaint(input: ApdpComplaintInput): Promise<ApdpComplaintResult> {
@@ -85,23 +98,17 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Error al generar reclamación ante la APDP');
-    }
-    return res.json();
+    return handleResponse<ApdpComplaintResult>(res);
   },
 
   async getInstitutionalStatus(): Promise<InstitutionalStatus> {
     const res = await fetch(`${BASE_URL}/institution/status`);
-    if (!res.ok) throw new Error('Error al obtener estado institucional');
-    return res.json();
+    return handleResponse<InstitutionalStatus>(res);
   },
 
   async getRatActivities(): Promise<RatActivity[]> {
     const res = await fetch(`${BASE_URL}/institution/rat`);
-    if (!res.ok) throw new Error('Error al obtener actividades RAT');
-    return res.json();
+    return handleResponse<RatActivity[]>(res);
   },
 
   async addRatActivity(act: Partial<RatActivity>): Promise<RatActivity> {
@@ -110,14 +117,12 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(act),
     });
-    if (!res.ok) throw new Error('Error al guardar actividad RAT');
-    return res.json();
+    return handleResponse<RatActivity>(res);
   },
 
   async getDpaContracts(): Promise<DpaContract[]> {
     const res = await fetch(`${BASE_URL}/institution/dpa`);
-    if (!res.ok) throw new Error('Error al obtener contratos DPA');
-    return res.json();
+    return handleResponse<DpaContract[]>(res);
   },
 
   async addDpaContract(dpa: Partial<DpaContract>): Promise<DpaContract> {
@@ -126,22 +131,19 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dpa),
     });
-    if (!res.ok) throw new Error('Error al guardar contrato DPA');
-    return res.json();
+    return handleResponse<DpaContract>(res);
   },
 
   async toggleDpa(id: string): Promise<DpaContract> {
     const res = await fetch(`${BASE_URL}/institution/dpa/${encodeURIComponent(id)}/toggle`, {
       method: 'PUT',
     });
-    if (!res.ok) throw new Error('Error al actualizar estado DPA');
-    return res.json();
+    return handleResponse<DpaContract>(res);
   },
 
   async getIncidents(): Promise<IncidentLog[]> {
     const res = await fetch(`${BASE_URL}/institution/incidents`);
-    if (!res.ok) throw new Error('Error al obtener registro de incidentes');
-    return res.json();
+    return handleResponse<IncidentLog[]>(res);
   },
 
   async addIncident(inc: Partial<IncidentLog>): Promise<IncidentLog> {
@@ -150,14 +152,12 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(inc),
     });
-    if (!res.ok) throw new Error('Error al registrar incidente');
-    return res.json();
+    return handleResponse<IncidentLog>(res);
   },
 
   async getGapQuestions(): Promise<GapQuestion[]> {
     const res = await fetch(`${BASE_URL}/gap-analysis/questions`);
-    if (!res.ok) throw new Error('Error al obtener preguntas de Gap Analysis');
-    return res.json();
+    return handleResponse<GapQuestion[]>(res);
   },
 
   async evaluateGap(submission: GapSubmission): Promise<GapResult> {
@@ -166,17 +166,12 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(submission),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Error al evaluar el Gap Analysis');
-    }
-    return res.json();
+    return handleResponse<GapResult>(res);
   },
 
   async getAuditControls(): Promise<AuditControl[]> {
     const res = await fetch(`${BASE_URL}/audit/controls`);
-    if (!res.ok) throw new Error('Error al obtener controles de auditoría');
-    return res.json();
+    return handleResponse<AuditControl[]>(res);
   },
 
   async evaluateAudit(submission: AuditSubmission): Promise<AuditReport> {
@@ -185,11 +180,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(submission),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Error al evaluar la auditoría');
-    }
-    return res.json();
+    return handleResponse<AuditReport>(res);
   },
 
   async calculateSanctions(req: SanctionRequest): Promise<SanctionResult> {
@@ -198,10 +189,6 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req),
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Error al calcular sanciones');
-    }
-    return res.json();
+    return handleResponse<SanctionResult>(res);
   },
 };

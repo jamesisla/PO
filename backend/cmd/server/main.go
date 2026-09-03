@@ -68,6 +68,7 @@ func main() {
 
 		// Citizen Tracking & APDP Complaint
 		api.Get("/citizen/requests", h.GetCitizenRequests)
+		api.Put("/barsop/requests/{id}/status", h.UpdateBarsopStatus)
 		api.Post("/citizen/complaint-apdp", h.GenerateApdpComplaint)
 	})
 

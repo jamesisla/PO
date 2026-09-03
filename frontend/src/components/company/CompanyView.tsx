@@ -4,7 +4,8 @@ import { GapAnalysisModal } from './GapAnalysisModal';
 import { RatViewer } from './RatViewer';
 import { DpaManagerModal } from './DpaManagerModal';
 import { IncidentManagerModal } from './IncidentManagerModal';
-import { Building2, Award, Database, AlertOctagon, UserCheck, ShieldCheck, ChevronRight, Sparkles, Shield, FileText } from 'lucide-react';
+import { CompanyBarsopInboxModal } from './CompanyBarsopInboxModal';
+import { Building2, Award, Database, AlertOctagon, UserCheck, ShieldCheck, ChevronRight, Sparkles, Shield, FileText, Inbox } from 'lucide-react';
 
 interface CompanyViewProps {
   modules: Module[];
@@ -16,6 +17,7 @@ export const CompanyView: React.FC<CompanyViewProps> = ({ modules, onSelectModul
   const [ratModalOpen, setRatModalOpen] = useState(false);
   const [dpaModalOpen, setDpaModalOpen] = useState(false);
   const [incidentModalOpen, setIncidentModalOpen] = useState(false);
+  const [inboxModalOpen, setInboxModalOpen] = useState(false);
 
   const level3 = modules.filter((m) => m.level === 3);
   const level4 = modules.filter((m) => m.level === 4);
@@ -37,10 +39,17 @@ export const CompanyView: React.FC<CompanyViewProps> = ({ modules, onSelectModul
           </p>
           <div className="pt-2 flex flex-wrap gap-3">
             <button
-              onClick={() => setGapModalOpen(true)}
+              onClick={() => setInboxModalOpen(true)}
               className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all"
             >
-              <Award className="w-4 h-4" />
+              <Inbox className="w-4 h-4" />
+              <span>Bandeja BARSOP Entrante (Gestionar)</span>
+            </button>
+            <button
+              onClick={() => setGapModalOpen(true)}
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+            >
+              <Award className="w-4 h-4 text-indigo-400" />
               <span>Autodiagnóstico (Gap Analysis)</span>
             </button>
             <button
@@ -181,6 +190,7 @@ export const CompanyView: React.FC<CompanyViewProps> = ({ modules, onSelectModul
       </div>
 
       {/* Modals */}
+      <CompanyBarsopInboxModal isOpen={inboxModalOpen} onClose={() => setInboxModalOpen(false)} />
       <GapAnalysisModal isOpen={gapModalOpen} onClose={() => setGapModalOpen(false)} />
       <RatViewer isOpen={ratModalOpen} onClose={() => setRatModalOpen(false)} />
       <DpaManagerModal isOpen={dpaModalOpen} onClose={() => setDpaModalOpen(false)} />

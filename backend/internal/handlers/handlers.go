@@ -101,7 +101,11 @@ func (h *APIHandler) GenerateBarsop(w http.ResponseWriter, r *http.Request) {
 	}
 	// Also auto-track in institutional service
 	h.institutional.AddCitizenRequest(domain.CitizenTrackedRequest{
+		TrackingCode:     res.TrackingCode,
 		ApplicantName:    input.ApplicantName,
+		ApplicantRut:     input.ApplicantRUT,
+		ApplicantEmail:   input.ApplicantEmail,
+		ApplicantPhone:   input.ApplicantPhone,
 		RecipientCompany: input.RecipientCompany,
 		RightType:        input.RightType,
 	})
@@ -239,4 +243,19 @@ func (h *APIHandler) GenerateApdpComplaint(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	writeJSON(w, http.StatusOK, res)
+}
+
+func (h *APIHandler) UpdateBarsopStatus(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var update domain.BarsopStatusUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+		writeError(w, http.StatusBadRequest, "formato JSON invalido: "+err.Error())
+		return
+	}
+	updated, err := h.institutional.UpdateBarsopStatus(id, update)
+	if err != nil {
+		writeError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, updated)
 }
